@@ -17,11 +17,6 @@
 # limitations under the License.
 #
 
-include_recipe "nginx"
-include_recipe "php"
-include_recipe "ruby"
-include_recipe "users"
-
 apps = if Chef::Config[:solo] and not node.recipes.include?("chef-solo-search")
   node["apps"]["apps"]
 else
@@ -32,9 +27,8 @@ else
 end
 
 apps.each do |app|
-  include_recipe "memcached" if app["services"].include? "memcached"
-  include_recipe "elasticsearch" if app["services"].include? "elasticsearch"
-  include_recipe "redis" if app["services"].include? "redis"
+  include_recipe "nginx"
+  include_recipe "users"
 
   directory app["root"] do
     owner app["owner"]
@@ -47,6 +41,8 @@ apps.each do |app|
 
   case app["type"]
   when "simple"
+    include_recipe "php"
+
     php_app app["owner"] do
       chdir app["root"]
       user app["owner"]
@@ -61,6 +57,8 @@ apps.each do |app|
 
       action :create
     end
+  when "rails"
+    include_recipe "ruby"
   end
 
   case app["database"]["type"]
@@ -92,4 +90,8 @@ apps.each do |app|
       action :create
     end
   end
+
+  include_recipe "memcached" if app["services"].include? "memcached"
+  include_recipe "elasticsearch" if app["services"].include? "elasticsearch"
+  include_recipe "redis" if app["services"].include? "redis"
 end
