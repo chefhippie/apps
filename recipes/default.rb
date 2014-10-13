@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-apps = if Chef::Config[:solo] and not node.recipes.include?("chef-solo-search")
+entries = if Chef::Config[:solo] and not node.recipes.include?("chef-solo-search")
   node["apps"]["apps"]
 else
   search(
@@ -26,72 +26,22 @@ else
   )
 end
 
-apps.each do |app|
-  include_recipe "nginx"
-  include_recipe "users"
+entries.each do |app|
+  apps app["id"] do
+    type app["type"] || "simple"
 
-  directory app["root"] do
+    root app["root"]
     owner app["owner"]
     group app["group"]
-    mode 0770
-    recursive true
+    database app["database"]
+
+    domains app["services"] || [node["fqdn"]]
+    index app["services"] || ["index.html"]
+    services app["services"] || []
+
+    onlywww app["onlywww"] || false
+    nowww app["nowww"] || false
 
     action :create
   end
-
-  case app["type"]
-  when "simple"
-    include_recipe "php"
-
-    php_app app["owner"] do
-      chdir app["root"]
-      user app["owner"]
-      group app["group"]
-    end
-
-    nginx_app app["id"] do
-      cookbook "apps"
-      template "simple.conf.erb"
-
-      variables app.to_hash
-
-      action :create
-    end
-  when "rails"
-    include_recipe "ruby"
-  end
-
-  case app["database"]["type"]
-  when "mysql"
-    include_recipe "mysql"
-  
-    mysql_app app["database"]["name"] do
-      username app["database"]["username"]
-      password app["database"]["password"]
-
-      action :create
-    end
-  when "postgresql"
-    include_recipe "postgresql"
-  
-    postgresql_app app["database"]["name"] do
-      username app["database"]["username"]
-      password app["database"]["password"]
-
-      action :create
-    end
-  when "mongodb"
-    include_recipe "mongodb"
-
-    mongodb_app app["database"]["name"] do
-      username app["database"]["username"]
-      password app["database"]["password"]
-
-      action :create
-    end
-  end
-
-  include_recipe "memcached" if app["services"].include? "memcached"
-  include_recipe "elasticsearch" if app["services"].include? "elasticsearch"
-  include_recipe "redis" if app["services"].include? "redis"
 end

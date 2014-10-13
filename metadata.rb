@@ -14,6 +14,8 @@ depends "mongodb"
 depends "memcached"
 depends "elasticsearch"
 depends "redis"
+depends "bundler"
+depends "foreman"
 recipe "apps", "Installs/Configures apps"
 
 supports "suse", ">= 12.3"
