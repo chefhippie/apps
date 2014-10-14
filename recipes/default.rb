@@ -35,8 +35,8 @@ entries.each do |app|
     group app["group"]
     database app["database"]
 
-    domains app["services"] || [node["fqdn"]]
-    index app["services"] || ["index.html"]
+    domains app["domains"] || [node["fqdn"]]
+    index app["index"] || ["index.html"]
     services app["services"] || []
 
     onlywww app["onlywww"] || false
