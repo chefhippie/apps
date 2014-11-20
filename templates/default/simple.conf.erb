@@ -60,7 +60,7 @@ server {
       return 404;
     }
 
-    fastcgi_pass unix:<%= node["php"]["run_dir"] %>/<%= @owner %>.socket;
+    fastcgi_pass unix:<%= node["php"]["fpm"]["run_dir"] %>/<%= @owner %>.socket;
     fastcgi_index index.php;
 
     include <%= node["nginx"]["config_dir"] %>/fastcgi.params;
